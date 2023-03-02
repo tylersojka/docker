@@ -1,0 +1,66 @@
+ARG BASE_TAG="latest"
+ARG BASE_IMAGE="kalilinux/kali-rolling"
+FROM kasmweb/$BASE_IMAGE:$BASE_TAG
+USER root
+
+ENV HOME /home/kasm-default-profile
+ENV STARTUPDIR /dockerstartup
+ENV INST_SCRIPTS $STARTUPDIR/install
+WORKDIR $HOME
+
+######### Customize Container Here ###########
+
+
+RUN touch $HOME/Desktop/hello.txt
+RUN apt update && apt upgrade -y \ 
+    && apt-get install -y sudo \
+    && echo 'kasm-user ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers \
+    && rm -rf /var/lib/apt/list/*
+    
+RUN apt-get install gnome-core kali-defaults kali-root-login desktop-base -y
+
+RUN apt -y install openvpn
+RUN apt -y install unzip
+
+# Install Starship
+RUN wget https://starship.rs/install.sh
+RUN chmod +x install.sh
+RUN ./install.sh -y
+
+# Add Starship to bashrc
+RUN echo 'eval "$(starship init bash)"' >> .bashrc
+
+# Change Background to sth cool
+COPY assets/r&m.jpg  /usr/share/extra/backgrounds/bg_default.png
+
+# Add Starship Theme
+COPY config/starship.toml .config/starship.toml
+
+# Install Hack Nerd Font
+RUN wget https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Hack.zip
+RUN unzip Hack.zip -d /usr/local/share/fonts
+
+# Install Terminator
+RUN apt -y install terminator
+
+# Set up Nerd font in Terminator
+RUN mkdir .config/terminator
+COPY config/terminator.toml .config/terminator/config
+
+# trying to install gnome
+RUN apt update && apt upgrade -y \ 
+    && apt install kali-desktop-gnome -y \ 
+    && apt remove kali-desktop-xfce xfce4* lightdm* -y \
+    && apt autoremove -y
+
+
+######### End Customizations ###########
+
+RUN chown 1000:0 $HOME
+RUN $STARTUPDIR/set_user_permission.sh $HOME
+
+ENV HOME /home/kasm-user
+WORKDIR $HOME
+RUN mkdir -p $HOME && chown -R 1000:0 $HOME
+
+USER 1000
