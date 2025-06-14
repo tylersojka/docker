@@ -1,12 +1,43 @@
 ARG BASE_TAG="1.17.0-rolling-daily"
-ARG BASE_IMAGE="ubuntu-noble-desktop"
+ARG BASE_IMAGE="core-ubuntu-noble"
 FROM kasmweb/$BASE_IMAGE:$BASE_TAG
+
 USER root
 
 ENV HOME=/home/kasm-default-profile
 ENV STARTUPDIR=/dockerstartup
-ENV INST_SCRIPTS=$STARTUPDIR/install
 WORKDIR $HOME
+
+### Envrionment config 
+ENV DEBIAN_FRONTEND=noninteractive \
+    SKIP_CLEAN=true \
+    KASM_RX_HOME=$STARTUPDIR/kasmrx \
+    DONT_PROMPT_WSL_INSTALL="No_Prompt_please" \
+    INST_DIR=$STARTUPDIR/install \
+    INST_SCRIPTS="/ubuntu/install/tools/install_tools_deluxe.sh \
+                  /ubuntu/install/misc/install_tools.sh \
+                  /ubuntu/install/chrome/install_chrome.sh \
+                  /ubuntu/install/chromium/install_chromium.sh \
+                  /ubuntu/install/firefox/install_firefox.sh \
+                  /ubuntu/install/sublime_text/install_sublime_text.sh \
+                  /ubuntu/install/vs_code/install_vs_code.sh \
+                  /ubuntu/install/ansible/install_ansible.sh \
+                  /ubuntu/install/cleanup/cleanup.sh"
+
+                  # Copy install scripts
+COPY ./src/ $INST_DIR
+
+# Run installations
+RUN \
+  for SCRIPT in $INST_SCRIPTS; do \
+    bash ${INST_DIR}${SCRIPT} || exit 1; \
+  done && \
+  $STARTUPDIR/set_user_permission.sh $HOME && \
+  rm -f /etc/X11/xinit/Xclients && \
+  chown 1000:0 $HOME && \
+  mkdir -p /home/kasm-user && \
+  chown -R 1000:0 /home/kasm-user && \
+  rm -Rf ${INST_DIR}
 
 RUN touch $HOME/Desktop/hello.txt
 RUN apt update && apt upgrade -y \ 
@@ -33,6 +64,7 @@ RUN apt-get update && apt-get install -y \
     neovim \
     xz-utils \
     unzip \
+    libfuse2t64 \
     && apt-get clean
 
 # Install Node.js 20
@@ -51,6 +83,36 @@ RUN if ! command -v code &> /dev/null; then \
     else \
         echo "VSCode already installed"; \
     fi
+
+# Install Cursor IDE
+RUN mkdir -p /opt/cursor /usr/share/applications /opt/icons \
+    && echo "Downloading Cursor..." \
+    && curl -L "https://www.cursor.com/api/download?platform=linux-x64&releaseTrack=stable" \
+        -H "User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36" \
+        -o /tmp/cursor.AppImage \
+    && chmod +x /tmp/cursor.AppImage \
+    && echo "Extracting Cursor..." \
+    && cd /tmp && /tmp/cursor.AppImage --appimage-extract \
+    && mv /tmp/squashfs-root/* /opt/cursor/ \
+    && rm -rf /tmp/cursor.AppImage /tmp/squashfs-root \
+    && echo "Setting up permissions..." \
+    && chown root:root /opt/cursor/chrome-sandbox \
+    && chmod 4755 /opt/cursor/chrome-sandbox \
+    && echo "Downloading Cursor icon..." \
+    && curl -L "https://www.cursor.com/apple-touch-icon.png" -o /opt/icons/cursor.png \
+    && echo "Creating desktop entry..." \
+    && cat > /usr/share/applications/cursor.desktop <<EOL
+[Desktop Entry]
+Name=Cursor
+Comment=The AI Code Editor
+Exec=/opt/cursor/AppRun %U
+Terminal=false
+Type=Application
+Icon=/opt/icons/cursor.png
+StartupWMClass=Cursor
+Categories=Development;IDE;
+MimeType=x-scheme-handler/cursor;
+EOL
 
 # Install Claude Code CLI
 RUN npm install -g @anthropic-ai/claude-code --no-os-check \
@@ -98,7 +160,7 @@ RUN ./install.sh -y
 RUN echo 'eval "$(starship init bash)"' >> .bashrc
 
 # Change Background to sth cool
-COPY assets/r&m.jpg  /usr/share/extra/backgrounds/bg_default.png
+COPY assets/r&m.jpg  /usr/share/backgrounds/bg_default.png
 
 # Add Starship Theme
 COPY config/starship.toml .config/starship.toml
