@@ -85,21 +85,22 @@ RUN if ! command -v code &> /dev/null; then \
     fi
 
 # Install Cursor IDE
-RUN mkdir -p /opt/cursor /usr/share/applications /opt/icons \
-    && echo "Downloading Cursor..." \
-    && curl -L "https://downloader.cursor.sh/linux/appImage/x64" \
-        -o /tmp/cursor.AppImage \
+RUN apt-get update && apt-get install -y jq && \
+    mkdir -p /opt/cursor /usr/share/applications /opt/icons \
+    && echo "Fetching Cursor download URL..." \
+    && CURSOR_URL=$(curl -s "https://www.cursor.com/api/download?platform=linux-x64&releaseTrack=stable" \
+        -H "User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36" \
+        | jq -r '.downloadUrl') \
+    && echo "Downloading Cursor from: $CURSOR_URL" \
+    && curl -L "$CURSOR_URL" -o /tmp/cursor.AppImage \
     && chmod +x /tmp/cursor.AppImage \
     && echo "Extracting Cursor..." \
     && cd /tmp && /tmp/cursor.AppImage --appimage-extract \
     && mv /tmp/squashfs-root/* /opt/cursor/ \
     && rm -rf /tmp/cursor.AppImage /tmp/squashfs-root \
-    && echo "Setting up permissions..." \
     && chown root:root /opt/cursor/chrome-sandbox \
     && chmod 4755 /opt/cursor/chrome-sandbox \
-    && echo "Downloading Cursor icon..." \
     && curl -L "https://www.cursor.com/apple-touch-icon.png" -o /opt/icons/cursor.png \
-    && echo "Creating desktop entry..." \
     && cat > /usr/share/applications/cursor.desktop <<EOL
 [Desktop Entry]
 Name=Cursor
