@@ -87,8 +87,7 @@ RUN if ! command -v code &> /dev/null; then \
 # Install Cursor IDE
 RUN mkdir -p /opt/cursor /usr/share/applications /opt/icons \
     && echo "Downloading Cursor..." \
-    && curl -L "https://www.cursor.com/api/download?platform=linux-x64&releaseTrack=stable" \
-        -H "User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36" \
+    && curl -L "https://downloader.cursor.sh/linux/appImage/x64" \
         -o /tmp/cursor.AppImage \
     && chmod +x /tmp/cursor.AppImage \
     && echo "Extracting Cursor..." \
