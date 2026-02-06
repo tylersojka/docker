@@ -107,17 +107,6 @@ RUN curl -fL "https://www.cursor.com/apple-touch-icon.png" -o /opt/icons/cursor.
 
 RUN printf '[Desktop Entry]\nName=Cursor\nComment=The AI Code Editor\nExec=/opt/cursor/AppRun %%U\nTerminal=false\nType=Application\nIcon=/opt/icons/cursor.png\nStartupWMClass=Cursor\nCategories=Development;IDE;\nMimeType=x-scheme-handler/cursor;\n' > /usr/share/applications/cursor.desktop
 
-[Desktop Entry]
-Name=Cursor
-Comment=The AI Code Editor
-Exec=/opt/cursor/AppRun %U
-Terminal=false
-Type=Application
-Icon=/opt/icons/cursor.png
-StartupWMClass=Cursor
-Categories=Development;IDE;
-MimeType=x-scheme-handler/cursor;
-EOL
 
 # Install Claude Code CLI
 RUN npm install -g @anthropic-ai/claude-code --no-os-check \
