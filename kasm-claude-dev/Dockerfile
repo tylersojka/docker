@@ -100,8 +100,7 @@ RUN CURSOR_URL=$(curl -sL "https://www.cursor.com/api/download?platform=linux-x6
 RUN cd /tmp && /tmp/cursor.AppImage --appimage-extract \
     && mv /tmp/squashfs-root/* /opt/cursor/ \
     && rm -rf /tmp/cursor.AppImage /tmp/squashfs-root \
-    && chown root:root /opt/cursor/chrome-sandbox \
-    && chmod 4755 /opt/cursor/chrome-sandbox
+    && (chown root:root /opt/cursor/chrome-sandbox && chmod 4755 /opt/cursor/chrome-sandbox || true)
 
 RUN curl -fL "https://www.cursor.com/apple-touch-icon.png" -o /opt/icons/cursor.png || true
 
