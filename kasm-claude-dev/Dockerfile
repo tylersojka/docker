@@ -85,23 +85,28 @@ RUN if ! command -v code &> /dev/null; then \
     fi
 
 # Install Cursor IDE
-RUN apt-get update && apt-get install -y jq && \
-    mkdir -p /opt/cursor /usr/share/applications /opt/icons \
-    && echo "Fetching Cursor download URL..." \
-    && CURSOR_URL=$(curl -s "https://www.cursor.com/api/download?platform=linux-x64&releaseTrack=stable" \
-        -H "User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36" \
+RUN apt-get update && apt-get install -y jq
+
+RUN mkdir -p /opt/cursor /usr/share/applications /opt/icons
+
+RUN CURSOR_URL=$(curl -sL "https://www.cursor.com/api/download?platform=linux-x64&releaseTrack=stable" \
+        -H "User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36" \
         | jq -r '.downloadUrl') \
-    && echo "Downloading Cursor from: $CURSOR_URL" \
-    && curl -L "$CURSOR_URL" -o /tmp/cursor.AppImage \
-    && chmod +x /tmp/cursor.AppImage \
-    && echo "Extracting Cursor..." \
-    && cd /tmp && /tmp/cursor.AppImage --appimage-extract \
+    && echo "Download URL: $CURSOR_URL" \
+    && if [ -z "$CURSOR_URL" ] || [ "$CURSOR_URL" = "null" ]; then echo "Failed to get download URL" && exit 1; fi \
+    && curl -fL "$CURSOR_URL" -o /tmp/cursor.AppImage \
+    && chmod +x /tmp/cursor.AppImage
+
+RUN cd /tmp && /tmp/cursor.AppImage --appimage-extract \
     && mv /tmp/squashfs-root/* /opt/cursor/ \
     && rm -rf /tmp/cursor.AppImage /tmp/squashfs-root \
     && chown root:root /opt/cursor/chrome-sandbox \
-    && chmod 4755 /opt/cursor/chrome-sandbox \
-    && curl -L "https://www.cursor.com/apple-touch-icon.png" -o /opt/icons/cursor.png \
-    && cat > /usr/share/applications/cursor.desktop <<EOL
+    && chmod 4755 /opt/cursor/chrome-sandbox
+
+RUN curl -fL "https://www.cursor.com/apple-touch-icon.png" -o /opt/icons/cursor.png || true
+
+RUN printf '[Desktop Entry]\nName=Cursor\nComment=The AI Code Editor\nExec=/opt/cursor/AppRun %%U\nTerminal=false\nType=Application\nIcon=/opt/icons/cursor.png\nStartupWMClass=Cursor\nCategories=Development;IDE;\nMimeType=x-scheme-handler/cursor;\n' > /usr/share/applications/cursor.desktop
+
 [Desktop Entry]
 Name=Cursor
 Comment=The AI Code Editor
