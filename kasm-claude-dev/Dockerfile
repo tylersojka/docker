@@ -148,9 +148,22 @@ RUN wget -q https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Hac
 RUN mkdir -p .config/terminator
 COPY config/terminator.toml .config/terminator/config
 
-# # remap interrupt to ctrl x
-# RUN echo '[[ $- == *i* ]] && stty intr ^X' >> $HOME/.zshrc \
-#     && echo '[[ $- == *i* ]] && stty intr ^X' >> $HOME/.bashrc
+# Install xdotool for window opacity control
+RUN apt-get update && apt-get install -y xdotool && apt-get clean
+
+# Enable XFCE compositor
+RUN mkdir -p $HOME/.config/xfce4/xfconf/xfce-perchannel-xml
+COPY config/xfwm4.xml $HOME/.config/xfce4/xfconf/xfce-perchannel-xml/xfwm4.xml
+
+# Terminator opacity script
+RUN mkdir -p $HOME/.local/bin
+COPY config/terminator-opacity.sh $HOME/.local/bin/terminator-opacity.sh
+RUN chmod +x $HOME/.local/bin/terminator-opacity.sh
+
+# Autostart terminator opacity on login
+RUN mkdir -p $HOME/.config/autostart \
+    && echo '[Desktop Entry]\nType=Application\nName=Terminator Opacity\nExec=/home/kasm-user/.local/bin/terminator-opacity.sh\nHidden=false\nX-GNOME-Autostart-enabled=true' > $HOME/.config/autostart/terminator-opacity.desktop
+
 
 ######### End Customizations ###########
 
