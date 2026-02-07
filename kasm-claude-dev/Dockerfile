@@ -31,7 +31,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 # Copy install scripts
 COPY ./src/ $INST_DIR
 
-RUN touch $HOME/Desktop/hello.txt
+RUN touch $HOME/Desktop/hello-v1.txt
 
 # Run base Kasm installations
 RUN \
@@ -80,17 +80,15 @@ RUN curl -fL "https://api2.cursor.sh/updates/download/golden/linux-x64-deb/curso
     && apt-get install -y /tmp/cursor.deb \
     && rm /tmp/cursor.deb
 
-# Create Cursor desktop entry with --no-sandbox
+# Cursor icon
 RUN mkdir -p /opt/icons \
     && curl -fL "https://www.cursor.com/apple-touch-icon.png" -o /opt/icons/cursor.png || true
-RUN cp $HOME/Desktop/cursor.desktop /usr/share/applications/cursor.desktop
 
 # Install Claude Code CLI
 RUN npm install -g @anthropic-ai/claude-code --no-os-check \
     && npm cache clean --force
-RUN cp $HOME/Desktop/claude.desktop /usr/share/applications/claude.desktop
 
-# get claude icon    
+# Claude icon
 RUN curl -fL "https://claude.ai/favicon.ico" -o /opt/icons/claude.png || true
 
 # Install Python packages
@@ -106,19 +104,19 @@ RUN apt-get update && apt-get install -y \
 
 # Create workspace structure
 RUN mkdir -p $HOME/claude-workspace/{projects,scripts,templates,docs} \
-    && mkdir -p $HOME/.config/claude \
-    && chown -R 1000:0 $HOME/claude-workspace \
-    && chown -R 1000:0 $HOME/.config/claude
-
-# Configure environment template
-RUN echo 'ANTHROPIC_API_KEY=your-api-key-here' > $HOME/.config/claude/.env.template
+    && chown -R 1000:0 $HOME/claude-workspace
 
 # Setup desktop shortcuts
 RUN mkdir -p $HOME/Desktop
 COPY ./terminal.desktop $HOME/Desktop/
 COPY ./cursor.desktop $HOME/Desktop/
 COPY ./claude.desktop $HOME/Desktop/
+COPY ./reset-profile.desktop $HOME/Desktop/
 RUN chmod +x $HOME/Desktop/*.desktop
+
+# Add to XFCE app menu
+RUN cp $HOME/Desktop/cursor.desktop /usr/share/applications/cursor.desktop \
+    && cp $HOME/Desktop/claude.desktop /usr/share/applications/claude.desktop
 
 # Configure VSCode
 RUN mkdir -p $HOME/.config/Code/User \
@@ -134,11 +132,13 @@ RUN sed -i '1i export ZSH_DISABLE_COMPFIX=true' $HOME/.zshrc
 # Install Starship
 RUN curl -sS https://starship.rs/install.sh | sh -s -- -y
 
-# Add Starship to both shells and add ~/.local/bin to PATH
+# Add Starship to both shells, PATH, and history sanitization
 RUN echo 'eval "$(starship init bash)"' >> .bashrc \
     && echo 'eval "$(starship init zsh)"' >> .zshrc \
     && echo 'export PATH="$HOME/.local/bin:$PATH"' >> .bashrc \
-    && echo 'export PATH="$HOME/.local/bin:$PATH"' >> .zshrc
+    && echo 'export PATH="$HOME/.local/bin:$PATH"' >> .zshrc \
+    && echo 'export HISTIGNORE="*KEY*:*TOKEN*:*SECRET*:*PASSWORD*"' >> .zshrc \
+    && echo 'export HISTIGNORE="*KEY*:*TOKEN*:*SECRET*:*PASSWORD*"' >> .bashrc
 
 # Change Background
 COPY assets/r&m.jpg /usr/share/backgrounds/bg_default.png
@@ -158,6 +158,11 @@ COPY config/terminator.toml .config/terminator/config
 # Enable XFCE compositor
 RUN mkdir -p $HOME/.config/xfce4/xfconf/xfce-perchannel-xml
 COPY config/xfwm4.xml $HOME/.config/xfce4/xfconf/xfce-perchannel-xml/xfwm4.xml
+
+# Reset profile script
+RUN mkdir -p $HOME/.local/bin
+COPY config/reset-profile.sh $HOME/.local/bin/reset-profile.sh
+RUN chmod +x $HOME/.local/bin/reset-profile.sh
 
 ######### End Customizations ###########
 
