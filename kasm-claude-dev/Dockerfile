@@ -147,9 +147,9 @@ RUN wget -q https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Hac
 RUN mkdir -p .config/terminator
 COPY config/terminator.toml .config/terminator/config
 
-# remap interrupt to ctrl x
-RUN echo 'stty intr ^X' >> $HOME/.zshrc \
-    && echo 'stty intr ^X' >> $HOME/.bashrc
+# # remap interrupt to ctrl x
+# RUN echo 'stty intr ^X' >> $HOME/.zshrc \
+#     && echo 'stty intr ^X' >> $HOME/.bashrc
 
 ######### End Customizations ###########
 
