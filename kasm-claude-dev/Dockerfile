@@ -147,12 +147,13 @@ RUN wget -q https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Hac
 RUN mkdir -p .config/terminator
 COPY config/terminator.toml .config/terminator/config
 
-# Force dark GTK theme for window decorations
+# Force dark GTK theme for Terminator and GTK apps
 RUN mkdir -p $HOME/.config/gtk-3.0 \
-    && printf '[Settings]\ngtk-application-prefer-dark-theme=1\ngtk-theme-name=Adwaita-dark\n' \
-       > $HOME/.config/gtk-3.0/settings.ini
-RUN mkdir -p $HOME/.config/xfce4/xfconf/xfce-perchannel-xml
-COPY config/xsettings.xml $HOME/.config/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml
+    && cat > $HOME/.config/gtk-3.0/settings.ini <<'EOF'
+[Settings]
+gtk-application-prefer-dark-theme=1
+gtk-theme-name=Adwaita-dark
+EOF
 
 # Remap interrupt to ctrl x
 RUN echo 'stty intr ^X' >> $HOME/.zshrc \
