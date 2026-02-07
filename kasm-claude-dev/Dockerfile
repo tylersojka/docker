@@ -21,7 +21,6 @@ ENV DEBIAN_FRONTEND=noninteractive \
                   /ubuntu/install/firefox/install_firefox.sh \
                   /ubuntu/install/sublime_text/install_sublime_text.sh \
                   /ubuntu/install/vs_code/install_vs_code.sh \
-                  /ubuntu/install/teams/install_teams.sh \
                   /ubuntu/install/vivaldi/install_vivaldi.sh \
                   /ubuntu/install/postman/install_postman.sh \
                   /ubuntu/install/terraform/install_terraform.sh \

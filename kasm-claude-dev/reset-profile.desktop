@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=⚠️ Reset Profile
+Comment=Reset home directory to factory defaults
+Exec=bash /home/kasm-user/.local/bin/reset-profile.sh
+Icon=system-restart
+Terminal=false
+StartupNotify=false
+Categories=System;
