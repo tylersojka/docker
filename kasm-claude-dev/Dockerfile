@@ -8,7 +8,7 @@ ENV HOME=/home/kasm-default-profile
 ENV STARTUPDIR=/dockerstartup
 WORKDIR $HOME
 
-### Environment config
+### Envrionment config 
 ENV DEBIAN_FRONTEND=noninteractive \
     SKIP_CLEAN=true \
     KASM_RX_HOME=$STARTUPDIR/kasmrx \
@@ -24,7 +24,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
                   /ubuntu/install/ansible/install_ansible.sh \
                   /ubuntu/install/cleanup/cleanup.sh"
 
-# Copy install scripts
+                  # Copy install scripts
 COPY ./src/ $INST_DIR
 
 # Run installations
@@ -39,12 +39,13 @@ RUN \
   chown -R 1000:0 /home/kasm-user && \
   rm -Rf ${INST_DIR}
 
-# System updates and sudo
-RUN apt-get update && apt-get upgrade -y \
+RUN touch $HOME/Desktop/hello.txt
+RUN apt update && apt upgrade -y \ 
     && apt-get install -y sudo \
-    && echo 'kasm-user ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
+    && echo 'kasm-user ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers \
+    && rm -rf /var/lib/apt/list/*
 
-# Base dependencies
+# Update and install base dependencies
 RUN apt-get update && apt-get install -y \
     curl \
     wget \
@@ -64,31 +65,42 @@ RUN apt-get update && apt-get install -y \
     xz-utils \
     unzip \
     libfuse2t64 \
-    jq \
-    terminator \
     && apt-get clean
 
 # Install Node.js 20
 RUN npm install -g n && n 20.11.0
 
-# Install Cursor IDE (AppImage - runs directly with libfuse2t64)
-RUN mkdir -p /opt/cursor /usr/share/applications /opt/icons \
-    && CURSOR_URL=$(curl -sL "https://www.cursor.com/api/download?platform=linux-x64&releaseTrack=stable" \
+
+# Install Cursor IDE
+RUN apt-get update && apt-get install -y jq
+
+RUN mkdir -p /opt/cursor /usr/share/applications /opt/icons
+
+RUN CURSOR_URL=$(curl -sL "https://www.cursor.com/api/download?platform=linux-x64&releaseTrack=stable" \
         -H "User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36" \
         | jq -r '.downloadUrl') \
-    && if [ -z "$CURSOR_URL" ] || [ "$CURSOR_URL" = "null" ]; then echo "Failed to get Cursor download URL" && exit 1; fi \
-    && curl -fL "$CURSOR_URL" -o /opt/cursor/cursor.AppImage \
-    && chmod +x /opt/cursor/cursor.AppImage \
-    && curl -fL "https://www.cursor.com/apple-touch-icon.png" -o /opt/icons/cursor.png || true
+    && echo "Download URL: $CURSOR_URL" \
+    && if [ -z "$CURSOR_URL" ] || [ "$CURSOR_URL" = "null" ]; then echo "Failed to get download URL" && exit 1; fi \
+    && curl -fL "$CURSOR_URL" -o /tmp/cursor.AppImage \
+    && chmod +x /tmp/cursor.AppImage
 
-RUN echo -e '[Desktop Entry]\nName=Cursor\nComment=The AI Code Editor\nExec=/opt/cursor/cursor.AppImage --no-sandbox %U\nTerminal=false\nType=Application\nIcon=/opt/icons/cursor.png\nStartupWMClass=Cursor\nCategories=Development;IDE;\nMimeType=x-scheme-handler/cursor;' > /usr/share/applications/cursor.desktop
+RUN cd /tmp && /tmp/cursor.AppImage --appimage-extract \
+    && mv /tmp/squashfs-root/* /opt/cursor/ \
+    && rm -rf /tmp/cursor.AppImage /tmp/squashfs-root \
+    && (chown root:root /opt/cursor/chrome-sandbox && chmod 4755 /opt/cursor/chrome-sandbox || true)
+
+RUN curl -fL "https://www.cursor.com/apple-touch-icon.png" -o /opt/icons/cursor.png || true
+
+RUN printf '[Desktop Entry]\nName=Cursor\nComment=The AI Code Editor\nExec=/opt/cursor/AppRun %%U\nTerminal=false\nType=Application\nIcon=/opt/icons/cursor.png\nStartupWMClass=Cursor\nCategories=Development;IDE;\nMimeType=x-scheme-handler/cursor;\n' > /usr/share/applications/cursor.desktop
+
 
 # Install Claude Code CLI
 RUN npm install -g @anthropic-ai/claude-code --no-os-check \
     && npm cache clean --force
 
-# Install Python packages
-RUN apt-get update && apt-get install -y \
+# Install Python packages via apt where available, pip for others
+RUN apt-get update \
+    && apt-get install -y \
     python3-pip \
     python3-requests \
     && pip3 install --break-system-packages \
@@ -119,26 +131,29 @@ RUN mkdir -p $HOME/.config/Code/User \
 RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended \
     && chsh -s $(which zsh)
 
-# Install Starship
-RUN curl -sS https://starship.rs/install.sh | sh -s -- -y
+    # Install Starship
+RUN wget https://starship.rs/install.sh
+RUN chmod +x install.sh
+RUN ./install.sh -y
 
-# Add Starship to bashrc and zshrc
-RUN echo 'eval "$(starship init bash)"' >> .bashrc \
-    && echo 'eval "$(starship init zsh)"' >> .zshrc
+# Add Starship to bashrc
+RUN echo 'eval "$(starship init bash)"' >> .bashrc
 
-# Change Background
-COPY assets/r&m.jpg /usr/share/backgrounds/bg_default.png
+# Change Background to sth cool
+COPY assets/r&m.jpg  /usr/share/backgrounds/bg_default.png
 
 # Add Starship Theme
 COPY config/starship.toml .config/starship.toml
 
 # Install Hack Nerd Font
-RUN wget -q https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Hack.zip \
-    && unzip -q Hack.zip -d /usr/local/share/fonts \
-    && rm Hack.zip
+RUN wget https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Hack.zip
+RUN unzip Hack.zip -d /usr/local/share/fonts
+
+# Install Terminator
+RUN apt -y install terminator
 
 # Set up Nerd font in Terminator
-RUN mkdir -p .config/terminator
+RUN mkdir .config/terminator
 COPY config/terminator.toml .config/terminator/config
 
 ######### End Customizations ###########
@@ -153,6 +168,7 @@ RUN mkdir -p $HOME && chown -R 1000:0 $HOME
 USER 1000
 ENV SHELL=/bin/zsh
 
+# Set permissions
 USER root
 RUN chown -R 1000:1000 $HOME
 USER 1000
