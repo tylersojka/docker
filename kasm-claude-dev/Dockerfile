@@ -122,7 +122,7 @@ RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master
     && chsh -s $(which zsh)
 
 RUN chmod -R 755 $HOME/.oh-my-zsh
-RUN chmod g-w,o-w -R $HOME/.oh-my-zsh
+RUN sed -i '1i export ZSH_DISABLE_COMPFIX=true' $HOME/.zshrc
 
 # Install Starship
 RUN curl -sS https://starship.rs/install.sh | sh -s -- -y
