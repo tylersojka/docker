@@ -85,7 +85,7 @@ RUN echo -e '[Desktop Entry]\nName=Cursor\nComment=The AI Code Editor\nExec=curs
 RUN npm install -g @anthropic-ai/claude-code --no-os-check \
     && npm cache clean --force
 
-# Get claude icon
+# get claude icon    
 RUN curl -fL "https://claude.ai/favicon.ico" -o /opt/icons/claude.png || true
 
 # Install Python packages
@@ -143,15 +143,11 @@ RUN wget -q https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Hac
     && unzip -q Hack.zip -d /usr/local/share/fonts \
     && rm Hack.zip
 
-# Set up Terminator config (Catppuccin Mocha theme)
+# Set up Nerd font in Terminator
 RUN mkdir -p .config/terminator
 COPY config/terminator.toml .config/terminator/config
 
-# Force dark GTK theme for Terminator and GTK apps
-# RUN mkdir -p $HOME/.config/gtk-3.0
-# COPY config/gtk-settings.ini $HOME/.config/gtk-3.0/settings.ini
-
-# Remap interrupt to ctrl x
+# remap interrupt to ctrl x
 RUN echo 'stty intr ^X' >> $HOME/.zshrc \
     && echo 'stty intr ^X' >> $HOME/.bashrc
 
