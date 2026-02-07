@@ -149,8 +149,8 @@ RUN mkdir -p .config/terminator
 COPY config/terminator.toml .config/terminator/config
 
 # # remap interrupt to ctrl x
-RUN echo 'stty intr ^X' >> $HOME/.zshrc \
-    && echo 'stty intr ^X' >> $HOME/.bashrc
+RUN echo '[[ $- == *i* ]] && stty intr ^X' >> $HOME/.zshrc \
+    && echo '[[ $- == *i* ]] && stty intr ^X' >> $HOME/.bashrc
 
 ######### End Customizations ###########
 

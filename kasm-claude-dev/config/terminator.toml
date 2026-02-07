@@ -12,9 +12,13 @@
   title_font = Hack Nerd Font 11
 
 [keybindings]
+  copy = <Control>c
+  paste = <Control>v
 
 [profiles]
   [[default]]
+    background_darkness = 0.92
+    background_type = transparent
     cursor_color = "#f5e0dc"
     cursor_color_fg = False
     foreground_color = "#cdd6f4"
