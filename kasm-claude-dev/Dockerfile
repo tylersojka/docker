@@ -105,8 +105,8 @@ RUN echo 'ANTHROPIC_API_KEY=your-api-key-here' > $HOME/.config/claude/.env.templ
 
 # Setup desktop shortcuts
 RUN mkdir -p $HOME/Desktop
-COPY ./vscode.desktop $HOME/Desktop/
 COPY ./terminal.desktop $HOME/Desktop/
+COPY ./cursor.desktop $HOME/Desktop/
 RUN chmod +x $HOME/Desktop/*.desktop
 
 # Configure VSCode

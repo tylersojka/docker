@@ -1,3 +1,16 @@
 [global_config]
-use_system_font = false
-font = "Hack Nerd Font 16"
+[keybindings]
+[profiles]
+  [[default]]
+    use_system_font = false
+    font = Hack Nerd Font 16
+    use_custom_command = True
+    custom_command = /bin/zsh
+[layouts]
+  [[default]]
+    [[[window0]]]
+      type = Window
+    [[[child1]]]
+      type = Terminal
+      parent = window0
+[plugins]

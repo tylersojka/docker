@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Cursor
+Comment=The AI Code Editor
+Exec=cursor --no-sandbox %U
+Icon=/opt/icons/cursor.png
+Terminal=false
+StartupNotify=true
+StartupWMClass=Cursor
+Categories=Development;IDE;
+MimeType=x-scheme-handler/cursor;
