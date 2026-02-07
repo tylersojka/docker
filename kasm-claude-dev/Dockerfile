@@ -148,12 +148,8 @@ RUN mkdir -p .config/terminator
 COPY config/terminator.toml .config/terminator/config
 
 # Force dark GTK theme for Terminator and GTK apps
-RUN mkdir -p $HOME/.config/gtk-3.0 \
-    && cat > $HOME/.config/gtk-3.0/settings.ini <<'EOF'
-[Settings]
-gtk-application-prefer-dark-theme=1
-gtk-theme-name=Adwaita-dark
-EOF
+RUN mkdir -p $HOME/.config/gtk-3.0
+COPY config/gtk-settings.ini $HOME/.config/gtk-3.0/settings.ini
 
 # Remap interrupt to ctrl x
 RUN echo 'stty intr ^X' >> $HOME/.zshrc \
