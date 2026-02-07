@@ -12,8 +12,6 @@
   title_font = Hack Nerd Font 11
 
 [keybindings]
-  copy = <Control>c
-  paste = <Control>v
 
 [profiles]
   [[default]]
