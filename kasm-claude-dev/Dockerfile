@@ -149,15 +149,10 @@ COPY config/terminator.toml .config/terminator/config
 
 # Force dark GTK theme for window decorations
 RUN mkdir -p $HOME/.config/gtk-3.0 \
-    && echo -e '[Settings]\ngtk-application-prefer-dark-theme=1\ngtk-theme-name=Adwaita-dark' \
-       > $HOME/.config/gtk-3.0/settings.ini \
-    && mkdir -p $HOME/.config/xfce4/xfconf/xfce-perchannel-xml \
-    && echo '<?xml version="1.0" encoding="UTF-8"?>\n\
-<channel name="xsettings" version="1.0">\n\
-  <property name="Net" type="empty">\n\
-    <property name="ThemeName" type="string" value="Adwaita-dark"/>\n\
-  </property>\n\
-</channel>' > $HOME/.config/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml
+    && printf '[Settings]\ngtk-application-prefer-dark-theme=1\ngtk-theme-name=Adwaita-dark\n' \
+       > $HOME/.config/gtk-3.0/settings.ini
+RUN mkdir -p $HOME/.config/xfce4/xfconf/xfce-perchannel-xml
+COPY config/xsettings.xml $HOME/.config/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml
 
 # Remap interrupt to ctrl x
 RUN echo 'stty intr ^X' >> $HOME/.zshrc \
