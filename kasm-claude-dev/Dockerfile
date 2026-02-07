@@ -122,6 +122,7 @@ RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master
     && chsh -s $(which zsh)
 
 RUN chmod -R 755 $HOME/.oh-my-zsh
+RUN chmod g-w,o-w -R $HOME/.oh-my-zsh
 
 # Install Starship
 RUN curl -sS https://starship.rs/install.sh | sh -s -- -y
@@ -148,8 +149,8 @@ RUN mkdir -p .config/terminator
 COPY config/terminator.toml .config/terminator/config
 
 # # remap interrupt to ctrl x
-# RUN echo 'stty intr ^X' >> $HOME/.zshrc \
-#     && echo 'stty intr ^X' >> $HOME/.bashrc
+RUN echo 'stty intr ^X' >> $HOME/.zshrc \
+    && echo 'stty intr ^X' >> $HOME/.bashrc
 
 ######### End Customizations ###########
 
