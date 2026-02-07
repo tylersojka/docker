@@ -3,7 +3,7 @@ Version=1.0
 Type=Application
 Name=Claude Code
 Comment=Claude Code CLI
-Exec=/usr/bin/terminator -e "zsh -ic '/usr/local/bin/claude'"
+Exec=/usr/bin/terminator --working-directory=/home/kasm-user/claude-workspace -e "zsh -ic '/usr/local/bin/claude'"
 Icon=/opt/icons/claude.png
 Terminal=false
 StartupNotify=true

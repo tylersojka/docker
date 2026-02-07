@@ -21,13 +21,18 @@ ENV DEBIAN_FRONTEND=noninteractive \
                   /ubuntu/install/firefox/install_firefox.sh \
                   /ubuntu/install/sublime_text/install_sublime_text.sh \
                   /ubuntu/install/vs_code/install_vs_code.sh \
+                  /ubuntu/install/teams/install_teams.sh
+                  /ubuntu/install/vivaldi/install_vivaldi.sh
+                  /ubuntu/install/postman/install_postman.sh
+                  /ubuntu/install/terraform/install_terraform.sh
+                  /ubuntu/install/only_office/install_only_office.sh
                   /ubuntu/install/ansible/install_ansible.sh \
                   /ubuntu/install/cleanup/cleanup.sh"
 
 # Copy install scripts
 COPY ./src/ $INST_DIR
 
-RUN touch $HOME/Desktop/hello-v1.txt
+RUN touch $HOME/Desktop/hello.txt
 
 # Run base Kasm installations
 RUN \
@@ -79,11 +84,12 @@ RUN curl -fL "https://api2.cursor.sh/updates/download/golden/linux-x64-deb/curso
 # Create Cursor desktop entry with --no-sandbox
 RUN mkdir -p /opt/icons \
     && curl -fL "https://www.cursor.com/apple-touch-icon.png" -o /opt/icons/cursor.png || true
-RUN echo -e '[Desktop Entry]\nName=Cursor\nComment=The AI Code Editor\nExec=cursor --no-sandbox %U\nTerminal=false\nType=Application\nIcon=/opt/icons/cursor.png\nStartupWMClass=Cursor\nCategories=Development;IDE;\nMimeType=x-scheme-handler/cursor;' > /usr/share/applications/cursor.desktop
+RUN cp $HOME/Desktop/cursor.desktop /usr/share/applications/cursor.desktop
 
 # Install Claude Code CLI
 RUN npm install -g @anthropic-ai/claude-code --no-os-check \
     && npm cache clean --force
+RUN cp $HOME/Desktop/claude.desktop /usr/share/applications/claude.desktop
 
 # get claude icon    
 RUN curl -fL "https://claude.ai/favicon.ico" -o /opt/icons/claude.png || true
@@ -150,22 +156,9 @@ RUN wget -q https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Hac
 RUN mkdir -p .config/terminator
 COPY config/terminator.toml .config/terminator/config
 
-# # Install xdotool for window opacity control
-# RUN apt-get update && apt-get install -y xdotool && apt-get clean
-
 # Enable XFCE compositor
 RUN mkdir -p $HOME/.config/xfce4/xfconf/xfce-perchannel-xml
 COPY config/xfwm4.xml $HOME/.config/xfce4/xfconf/xfce-perchannel-xml/xfwm4.xml
-
-# # Terminator opacity script
-# RUN mkdir -p $HOME/.local/bin
-# COPY config/terminator-opacity.sh $HOME/.local/bin/terminator-opacity.sh
-# RUN chmod +x $HOME/.local/bin/terminator-opacity.sh
-
-# # Autostart terminator opacity on login
-# RUN mkdir -p $HOME/.config/autostart \
-#     && echo '[Desktop Entry]\nType=Application\nName=Terminator Opacity\nExec=/home/kasm-user/.local/bin/terminator-opacity.sh\nHidden=false\nX-GNOME-Autostart-enabled=true' > $HOME/.config/autostart/terminator-opacity.desktop
-
 
 ######### End Customizations ###########
 

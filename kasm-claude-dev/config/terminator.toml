@@ -15,7 +15,7 @@
 
 [profiles]
   [[default]]
-    background_darkness = 0.92
+    background_darkness = 0.90
     background_type = transparent
     cursor_color = "#f5e0dc"
     cursor_color_fg = False
