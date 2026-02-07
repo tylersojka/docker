@@ -3,9 +3,9 @@ Version=1.0
 Type=Application
 Name=Terminal
 Comment=Open Terminal in Claude Workspace
-Exec=/usr/bin/gnome-terminal --working-directory=/home/kasm-default-profile/claude-workspace
+Exec=/usr/bin/terminator --working-directory=/home/kasm-user/claude-workspace
 Icon=utilities-terminal
-Path=/home/kasm-default-profile/claude-workspace
+Path=/home/kasm-user/claude-workspace
 Terminal=false
 StartupNotify=true
 Categories=System;TerminalEmulator;

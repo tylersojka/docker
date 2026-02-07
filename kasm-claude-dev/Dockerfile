@@ -1,4 +1,4 @@
-ARG BASE_TAG="1.17.0-rolling-daily"
+ARG BASE_TAG="1.18.0-rolling-daily"
 ARG BASE_IMAGE="core-ubuntu-noble"
 FROM kasmweb/$BASE_IMAGE:$BASE_TAG
 
@@ -8,7 +8,7 @@ ENV HOME=/home/kasm-default-profile
 ENV STARTUPDIR=/dockerstartup
 WORKDIR $HOME
 
-### Envrionment config 
+### Environment config
 ENV DEBIAN_FRONTEND=noninteractive \
     SKIP_CLEAN=true \
     KASM_RX_HOME=$STARTUPDIR/kasmrx \
@@ -24,10 +24,12 @@ ENV DEBIAN_FRONTEND=noninteractive \
                   /ubuntu/install/ansible/install_ansible.sh \
                   /ubuntu/install/cleanup/cleanup.sh"
 
-                  # Copy install scripts
+# Copy install scripts
 COPY ./src/ $INST_DIR
 
-# Run installations
+RUN touch $HOME/Desktop/hello-v1.txt
+
+# Run base Kasm installations
 RUN \
   for SCRIPT in $INST_SCRIPTS; do \
     bash ${INST_DIR}${SCRIPT} || exit 1; \
@@ -39,14 +41,10 @@ RUN \
   chown -R 1000:0 /home/kasm-user && \
   rm -Rf ${INST_DIR}
 
-RUN touch $HOME/Desktop/hello.txt
-RUN apt update && apt upgrade -y \ 
-    && apt-get install -y sudo \
-    && echo 'kasm-user ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers \
-    && rm -rf /var/lib/apt/list/*
-
-# Update and install base dependencies
-RUN apt-get update && apt-get install -y \
+# System updates, sudo, and base dependencies
+RUN apt-get update && apt-get upgrade -y \
+    && apt-get install -y \
+    sudo \
     curl \
     wget \
     git \
@@ -64,43 +62,31 @@ RUN apt-get update && apt-get install -y \
     neovim \
     xz-utils \
     unzip \
-    libfuse2t64 \
+    jq \
+    terminator \
+    && echo 'kasm-user ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers \
     && apt-get clean
 
 # Install Node.js 20
 RUN npm install -g n && n 20.11.0
 
+# Install Cursor IDE via .deb
+RUN curl -fL "https://api2.cursor.sh/updates/download/golden/linux-x64-deb/cursor/2.4" \
+        -o /tmp/cursor.deb \
+    && apt-get install -y /tmp/cursor.deb \
+    && rm /tmp/cursor.deb
 
-# Install Cursor IDE
-RUN apt-get update && apt-get install -y jq
-
-RUN mkdir -p /opt/cursor /usr/share/applications /opt/icons
-
-RUN CURSOR_URL=$(curl -sL "https://www.cursor.com/api/download?platform=linux-x64&releaseTrack=stable" \
-        -H "User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36" \
-        | jq -r '.downloadUrl') \
-    && echo "Download URL: $CURSOR_URL" \
-    && if [ -z "$CURSOR_URL" ] || [ "$CURSOR_URL" = "null" ]; then echo "Failed to get download URL" && exit 1; fi \
-    && curl -fL "$CURSOR_URL" -o /tmp/cursor.AppImage \
-    && chmod +x /tmp/cursor.AppImage
-
-RUN cd /tmp && /tmp/cursor.AppImage --appimage-extract \
-    && mv /tmp/squashfs-root/* /opt/cursor/ \
-    && rm -rf /tmp/cursor.AppImage /tmp/squashfs-root \
-    && (chown root:root /opt/cursor/chrome-sandbox && chmod 4755 /opt/cursor/chrome-sandbox || true)
-
-RUN curl -fL "https://www.cursor.com/apple-touch-icon.png" -o /opt/icons/cursor.png || true
-
-RUN printf '[Desktop Entry]\nName=Cursor\nComment=The AI Code Editor\nExec=/opt/cursor/AppRun %%U\nTerminal=false\nType=Application\nIcon=/opt/icons/cursor.png\nStartupWMClass=Cursor\nCategories=Development;IDE;\nMimeType=x-scheme-handler/cursor;\n' > /usr/share/applications/cursor.desktop
-
+# Create Cursor desktop entry with --no-sandbox
+RUN mkdir -p /opt/icons \
+    && curl -fL "https://www.cursor.com/apple-touch-icon.png" -o /opt/icons/cursor.png || true
+RUN echo -e '[Desktop Entry]\nName=Cursor\nComment=The AI Code Editor\nExec=cursor --no-sandbox %U\nTerminal=false\nType=Application\nIcon=/opt/icons/cursor.png\nStartupWMClass=Cursor\nCategories=Development;IDE;\nMimeType=x-scheme-handler/cursor;' > /usr/share/applications/cursor.desktop
 
 # Install Claude Code CLI
 RUN npm install -g @anthropic-ai/claude-code --no-os-check \
     && npm cache clean --force
 
-# Install Python packages via apt where available, pip for others
-RUN apt-get update \
-    && apt-get install -y \
+# Install Python packages
+RUN apt-get update && apt-get install -y \
     python3-pip \
     python3-requests \
     && pip3 install --break-system-packages \
@@ -114,7 +100,7 @@ RUN apt-get update \
 RUN mkdir -p $HOME/claude-workspace/{projects,scripts,templates,docs} \
     && mkdir -p $HOME/.config/claude
 
-# Configure environment
+# Configure environment template
 RUN echo 'ANTHROPIC_API_KEY=your-api-key-here' > $HOME/.config/claude/.env.template
 
 # Setup desktop shortcuts
@@ -131,29 +117,28 @@ RUN mkdir -p $HOME/.config/Code/User \
 RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended \
     && chsh -s $(which zsh)
 
-    # Install Starship
-RUN wget https://starship.rs/install.sh
-RUN chmod +x install.sh
-RUN ./install.sh -y
+# Install Starship
+RUN curl -sS https://starship.rs/install.sh | sh -s -- -y
 
-# Add Starship to bashrc
-RUN echo 'eval "$(starship init bash)"' >> .bashrc
+# Add Starship to both shells and add ~/.local/bin to PATH
+RUN echo 'eval "$(starship init bash)"' >> .bashrc \
+    && echo 'eval "$(starship init zsh)"' >> .zshrc \
+    && echo 'export PATH="$HOME/.local/bin:$PATH"' >> .bashrc \
+    && echo 'export PATH="$HOME/.local/bin:$PATH"' >> .zshrc
 
-# Change Background to sth cool
-COPY assets/r&m.jpg  /usr/share/backgrounds/bg_default.png
+# Change Background
+COPY assets/r&m.jpg /usr/share/backgrounds/bg_default.png
 
 # Add Starship Theme
 COPY config/starship.toml .config/starship.toml
 
 # Install Hack Nerd Font
-RUN wget https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Hack.zip
-RUN unzip Hack.zip -d /usr/local/share/fonts
-
-# Install Terminator
-RUN apt -y install terminator
+RUN wget -q https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Hack.zip \
+    && unzip -q Hack.zip -d /usr/local/share/fonts \
+    && rm Hack.zip
 
 # Set up Nerd font in Terminator
-RUN mkdir .config/terminator
+RUN mkdir -p .config/terminator
 COPY config/terminator.toml .config/terminator/config
 
 ######### End Customizations ###########
@@ -168,7 +153,6 @@ RUN mkdir -p $HOME && chown -R 1000:0 $HOME
 USER 1000
 ENV SHELL=/bin/zsh
 
-# Set permissions
 USER root
 RUN chown -R 1000:1000 $HOME
 USER 1000
