@@ -12,7 +12,7 @@ version=$(curl -q https://slack.com/downloads/linux | grep page-downloads__hero_
 echo Detected slack version $version
 
 
-if [[ "${DISTRO}" == @(oracle8|rockylinux9|rockylinux8|oracle9|rhel9|almalinux9|almalinux8|fedora39|fedora40|opensuse) ]]; then
+if [[ "${DISTRO}" == @(oracle8|rockylinux9|rockylinux8|oracle9|rhel9|almalinux9|almalinux8|fedora39|fedora40|fedora41|opensuse) ]]; then
 
   wget -q https://downloads.slack-edge.com/desktop-releases/linux/x64/${version}/slack-${version}-0.1.el8.x86_64.rpm
 
@@ -21,9 +21,14 @@ if [[ "${DISTRO}" == @(oracle8|rockylinux9|rockylinux8|oracle9|rhel9|almalinux9|
     if [ -z ${SKIP_CLEAN+x} ]; then
       dnf clean all
     fi
+  elif [[ "${DISTRO}" == "fedora41" ]]; then
+    dnf install -y slack-${version}-0.1.el8.x86_64.rpm
+    if [ -z ${SKIP_CLEAN+x} ]; then
+      dnf clean all
+    fi
   elif [[ "${DISTRO}" == "opensuse" ]]; then
-    wget https://slack.com/gpg/slack_pubkey_20240822.gpg
-    rpm --import slack_pubkey_20240822.gpg
+    wget https://slack.com/gpg/slack_pubkey_20251016.gpg
+    rpm --import slack_pubkey_20251016.gpg
     zypper install -yn slack-${version}-0.1.el8.x86_64.rpm
     if [ -z ${SKIP_CLEAN+x} ]; then
       zypper clean --all

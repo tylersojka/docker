@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -ex
-START_COMMAND="/opt/gimp-3/squashfs-root/launcher"
-PGREP="gimp"
+START_COMMAND="/opt/Obsidian/squashfs-root/launcher"
+PGREP="obsidian"
 export MAXIMIZE="true"
-export MAXIMIZE_NAME="GNU Image Manipulation Program"
+export MAXIMIZE_NAME="Obsidian"
 MAXIMIZE_SCRIPT=$STARTUPDIR/maximize_window.sh
 DEFAULT_ARGS=""
 ARGS=${APP_ARGS:-$DEFAULT_ARGS}
