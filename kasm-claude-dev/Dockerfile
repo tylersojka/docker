@@ -85,6 +85,9 @@ RUN echo -e '[Desktop Entry]\nName=Cursor\nComment=The AI Code Editor\nExec=curs
 RUN npm install -g @anthropic-ai/claude-code --no-os-check \
     && npm cache clean --force
 
+# Get claude icon
+RUN curl -fL "https://claude.ai/favicon.ico" -o /opt/icons/claude.png || true
+
 # Install Python packages
 RUN apt-get update && apt-get install -y \
     python3-pip \
@@ -107,6 +110,7 @@ RUN echo 'ANTHROPIC_API_KEY=your-api-key-here' > $HOME/.config/claude/.env.templ
 RUN mkdir -p $HOME/Desktop
 COPY ./terminal.desktop $HOME/Desktop/
 COPY ./cursor.desktop $HOME/Desktop/
+COPY ./claude.desktop $HOME/Desktop/
 RUN chmod +x $HOME/Desktop/*.desktop
 
 # Configure VSCode
@@ -116,6 +120,8 @@ RUN mkdir -p $HOME/.config/Code/User \
 # Install Oh My Zsh
 RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended \
     && chsh -s $(which zsh)
+
+RUN chmod -R 755 $HOME/.oh-my-zsh
 
 # Install Starship
 RUN curl -sS https://starship.rs/install.sh | sh -s -- -y
@@ -137,9 +143,25 @@ RUN wget -q https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Hac
     && unzip -q Hack.zip -d /usr/local/share/fonts \
     && rm Hack.zip
 
-# Set up Nerd font in Terminator
+# Set up Terminator config (Catppuccin Mocha theme)
 RUN mkdir -p .config/terminator
 COPY config/terminator.toml .config/terminator/config
+
+# Force dark GTK theme for window decorations
+RUN mkdir -p $HOME/.config/gtk-3.0 \
+    && echo -e '[Settings]\ngtk-application-prefer-dark-theme=1\ngtk-theme-name=Adwaita-dark' \
+       > $HOME/.config/gtk-3.0/settings.ini \
+    && mkdir -p $HOME/.config/xfce4/xfconf/xfce-perchannel-xml \
+    && echo '<?xml version="1.0" encoding="UTF-8"?>\n\
+<channel name="xsettings" version="1.0">\n\
+  <property name="Net" type="empty">\n\
+    <property name="ThemeName" type="string" value="Adwaita-dark"/>\n\
+  </property>\n\
+</channel>' > $HOME/.config/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml
+
+# Remap interrupt to ctrl x
+RUN echo 'stty intr ^X' >> $HOME/.zshrc \
+    && echo 'stty intr ^X' >> $HOME/.bashrc
 
 ######### End Customizations ###########
 
