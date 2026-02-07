@@ -37,3 +37,11 @@ jobs:
           tags: |
             tsojka99/kasm-claude:latest
             tsojka99/kasm-claude:${{ steps.date.outputs.tag }}
+            
+      - name: Pull new image on Kasm server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.KASM_HOST }}
+          username: ${{ secrets.KASM_USER }}
+          key: ${{ secrets.KASM_SSH_KEY }}
+          script: docker pull tsojka99/kasm-claude:latest
