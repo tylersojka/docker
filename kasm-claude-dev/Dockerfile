@@ -138,7 +138,7 @@ RUN echo 'eval "$(starship init bash)"' >> .bashrc \
     && echo 'export PATH="$HOME/.local/bin:$PATH"' >> .bashrc \
     && echo 'export PATH="$HOME/.local/bin:$PATH"' >> .zshrc \
     && echo 'export HISTIGNORE="*KEY*:*TOKEN*:*SECRET*:*PASSWORD*"' >> .zshrc \
-    && echo 'export HISTIGNORE="*KEY*:*TOKEN*:*SECRET*:*PASSWORD*"' >> .bashrc
+    && echo 'export HISTIGNORE="*KEY*:*TOKEN*:*SECRET*:*PASSWORD*"' >> .bashrc \
     && echo 'export LS_COLORS="${LS_COLORS}:ow=1;34;45:tw=1;34;45"' >> .zshrc \
     && echo 'export LS_COLORS="${LS_COLORS}:ow=1;34;45:tw=1;34;45"' >> .bashrc
 
