@@ -164,6 +164,14 @@ RUN mkdir -p $HOME/.local/bin
 COPY config/reset-profile.sh $HOME/.local/bin/reset-profile.sh
 RUN chmod +x $HOME/.local/bin/reset-profile.sh
 
+# System monitor panel plugins
+RUN apt-get update && apt-get install -y \
+    xfce4-genmon-plugin \
+    xfce4-cpugraph-plugin \
+    xfce4-netload-plugin \
+    xfce4-systemload-plugin \
+    && apt-get clean
+    
 ######### End Customizations ###########
 
 RUN chown 1000:0 $HOME
