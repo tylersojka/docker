@@ -171,7 +171,11 @@ RUN apt-get update && apt-get install -y \
     xfce4-netload-plugin \
     xfce4-systemload-plugin \
     && apt-get clean
-    
+
+# Panel config with system monitors
+COPY config/xfce4-panel.xml $HOME/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml
+
+
 ######### End Customizations ###########
 
 RUN chown 1000:0 $HOME
