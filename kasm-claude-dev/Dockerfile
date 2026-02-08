@@ -189,7 +189,7 @@ USER 1000
 ENV SHELL=/bin/zsh
 
 USER root
-RUN chown -R 1000:1000 $HOME
+RUN mkdir -p $HOME/claude-workspace && chown -R 1000:1000 $HOME
 USER 1000
 
 WORKDIR $HOME/claude-workspace
