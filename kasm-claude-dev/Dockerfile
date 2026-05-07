@@ -52,8 +52,6 @@ RUN apt-get update && apt-get upgrade -y \
     curl \
     wget \
     git \
-    python3 \
-    python3-pip \
     nodejs \
     npm \
     build-essential \
@@ -93,14 +91,21 @@ RUN curl -fL "https://claude.ai/favicon.ico" -o /opt/icons/claude.png || true
 
 # Install Python packages
 RUN apt-get update && apt-get install -y \
+    python3 \
     python3-pip \
-    python3-requests \
-    && pip3 install --break-system-packages \
-    anthropic \
-    python-dotenv \
-    rich \
-    typer \
-    && apt-get clean
+    python3-venv \
+    python3-full \
+    && python3 -m venv /opt/python-venv \
+    && /opt/python-venv/bin/pip install --no-cache-dir \
+       anthropic \
+       python-dotenv \
+       rich \
+       typer \
+       requests \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV PATH="/opt/python-venv/bin:$PATH"
 
 # Create workspace structure
 RUN mkdir -p $HOME/claude-workspace/{projects,scripts,templates,docs} \
