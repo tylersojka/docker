@@ -13,10 +13,12 @@ on:
         required: false
         default: false
 
+permissions:
+  contents: write
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -78,3 +80,14 @@ jobs:
           script: |
             rm -rf /mnt/kasm_homes/*/
             echo "All persistent profiles have been reset"
+
+      - name: Update build log (keepalive)
+        if: ${{ github.event_name == 'schedule' }}
+        run: |
+          echo "Last build: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" > LAST_BUILD.md
+          echo "Tag: ${{ steps.date.outputs.tag }}" >> LAST_BUILD.md
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add LAST_BUILD.md
+          git diff --quiet --cached || git commit -m "chore: update build log [skip ci]"
+          git push
